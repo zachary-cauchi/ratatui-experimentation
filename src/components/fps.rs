@@ -7,6 +7,12 @@ use super::Component;
 use crate::{action::Action, tui::Frame};
 
 #[derive(Debug, Clone, PartialEq)]
+pub enum Ticker {
+  AppTick,
+  RenderTick,
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct FpsCounter {
   app_start_time: Instant,
   app_frames: u32,
@@ -82,7 +88,7 @@ impl Component for FpsCounter {
 
     let rect = rects[0];
 
-    let s = format!("{:.2} ticks per sec (app) {:.2} frames per sec (render)", self.app_fps, self.render_fps);
+    let s = format!("{:.2} fps (app) {:.2} fps (render)", self.app_fps, self.render_fps);
     let block = Block::default().title(block::Title::from(s.dim()).alignment(Alignment::Right));
     f.render_widget(block, rect);
     Ok(())
