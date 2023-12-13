@@ -64,7 +64,6 @@ impl Home {
     let tx = self.action_tx.clone().unwrap();
     tokio::spawn(async move {
       tx.send(Action::EnterProcessing).unwrap();
-      tokio::time::sleep(Duration::from_secs(1)).await;
       tx.send(Action::Increment(i)).unwrap();
       tx.send(Action::ExitProcessing).unwrap();
     });
@@ -74,7 +73,6 @@ impl Home {
     let tx = self.action_tx.clone().unwrap();
     tokio::spawn(async move {
       tx.send(Action::EnterProcessing).unwrap();
-      tokio::time::sleep(Duration::from_secs(1)).await;
       tx.send(Action::Decrement(i)).unwrap();
       tx.send(Action::ExitProcessing).unwrap();
     });
