@@ -86,6 +86,23 @@ impl Home {
     self.counter = self.counter.saturating_sub(i);
   }
 
+  fn draw_menu(&self, f: &mut Frame) {
+    let chunks = Layout::default()
+      .direction(Direction::Vertical)
+      .margin(1)
+      .constraints([Constraint::Min(0), Constraint::Length(3)])
+      .split(f.size());
+
+    let tabs = Tabs::new(vec!["List", "View", "Edit", "Delete"])
+      .block(Block::default().title("List operations").borders(Borders::TOP))
+      .style(Style::default().white())
+      .highlight_style(Style::default().yellow())
+      .select(0)
+      .divider(symbols::DOT);
+
+    f.render_widget(tabs, chunks[0]);
+  }
+
   fn draw_help(&self, f: &mut Frame, rect: &Rect) {
     let rect = rect.inner(&Margin { horizontal: 4, vertical: 2 });
     f.render_widget(Clear, rect);
@@ -270,6 +287,8 @@ impl Component for Home {
         .title_style(Style::default().add_modifier(Modifier::BOLD)),
       Rect { x: rect.x + 1, y: rect.height.saturating_sub(1), width: rect.width.saturating_sub(2), height: 1 },
     );
+
+    self.draw_menu(f);
 
     Ok(())
   }
