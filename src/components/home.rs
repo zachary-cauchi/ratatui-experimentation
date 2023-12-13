@@ -9,7 +9,10 @@ use tracing::trace;
 use tui_input::{backend::crossterm::EventHandler, Input};
 
 use super::{Component, Frame};
-use crate::{action::Action, config::key_event_to_string};
+use crate::{
+  action::Action,
+  config::{key_event_to_string, KeyBindings},
+};
 
 #[derive(Default, Copy, Clone, PartialEq, Eq)]
 pub enum Mode {
@@ -28,7 +31,7 @@ pub struct Home {
   pub mode: Mode,
   pub input: Input,
   pub action_tx: Option<UnboundedSender<Action>>,
-  pub keymap: HashMap<KeyEvent, Action>,
+  pub keymap: HashMap<Vec<KeyEvent>, Action>,
   pub text: Vec<String>,
   pub last_events: Vec<KeyEvent>,
 }
@@ -38,9 +41,8 @@ impl Home {
     Self::default()
   }
 
-  pub fn keymap(mut self, keymap: HashMap<KeyEvent, Action>) -> Self {
+  pub fn set_keymap(&mut self, keymap: HashMap<Vec<KeyEvent>, Action>) {
     self.keymap = keymap;
-    self
   }
 
   pub fn tick(&mut self) {
@@ -85,9 +87,54 @@ impl Home {
   pub fn decrement(&mut self, i: usize) {
     self.counter = self.counter.saturating_sub(i);
   }
+
+  fn draw_help(&self, f: &mut Frame, rect: &Rect) {
+    let rect = rect.inner(&Margin { horizontal: 4, vertical: 2 });
+    f.render_widget(Clear, rect);
+    let block = Block::default()
+      .title(Line::from(vec![Span::styled("Key Bindings", Style::default().add_modifier(Modifier::BOLD))]))
+      .borders(Borders::ALL)
+      .border_style(Style::default().fg(Color::Yellow));
+    f.render_widget(block, rect);
+
+    // Map the keybindings to a vector of rows.
+    // Each vector prints the key(s) and the action it performs.
+    // TODO: Add printing of modifier keys (Ctrl, Shift, etc.)
+    let rows: Vec<Row> = self
+      .keymap
+      .iter()
+      .map(|(key, val)| {
+        Row::new(vec![
+          key
+            .iter()
+            .map(|k| serde_json::to_value(k).unwrap().to_string())
+            .enumerate()
+            .map(|(i, k)| match i {
+              0 => k,
+              _ => format!(", {}", k),
+            })
+            .collect(),
+          serde_json::to_value(val).unwrap().to_string(),
+        ])
+      })
+      .collect();
+
+    // Construct the final table.
+    let table = Table::new(rows)
+      .header(Row::new(vec!["Key", "Action"]).bottom_margin(1).style(Style::default().add_modifier(Modifier::BOLD)))
+      .widths(&[Constraint::Percentage(10), Constraint::Percentage(90)])
+      .column_spacing(1);
+    f.render_widget(table, rect.inner(&Margin { vertical: 4, horizontal: 2 }));
+  }
 }
 
 impl Component for Home {
+  fn register_config_handler(&mut self, config: crate::config::Config) -> Result<()> {
+    self.set_keymap(config.keybindings.get(&crate::app::Mode::Home).unwrap().clone());
+
+    Ok(())
+  }
+
   fn register_action_handler(&mut self, tx: UnboundedSender<Action>) -> Result<()> {
     self.action_tx = Some(tx);
     Ok(())
@@ -210,27 +257,7 @@ impl Component for Home {
     }
 
     if self.show_help {
-      let rect = rect.inner(&Margin { horizontal: 4, vertical: 2 });
-      f.render_widget(Clear, rect);
-      let block = Block::default()
-        .title(Line::from(vec![Span::styled("Key Bindings", Style::default().add_modifier(Modifier::BOLD))]))
-        .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::Yellow));
-      f.render_widget(block, rect);
-      let rows = vec![
-        Row::new(vec!["j", "Increment"]),
-        Row::new(vec!["k", "Decrement"]),
-        Row::new(vec!["/", "Enter Input"]),
-        Row::new(vec!["ESC", "Exit Input"]),
-        Row::new(vec!["Enter", "Submit Input"]),
-        Row::new(vec!["q", "Quit"]),
-        Row::new(vec!["?", "Open Help"]),
-      ];
-      let table = Table::new(rows)
-        .header(Row::new(vec!["Key", "Action"]).bottom_margin(1).style(Style::default().add_modifier(Modifier::BOLD)))
-        .widths(&[Constraint::Percentage(10), Constraint::Percentage(90)])
-        .column_spacing(1);
-      f.render_widget(table, rect.inner(&Margin { vertical: 4, horizontal: 2 }));
+      self.draw_help(f, &rect);
     };
 
     f.render_widget(
