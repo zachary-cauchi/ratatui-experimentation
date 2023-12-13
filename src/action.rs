@@ -6,6 +6,14 @@ use serde::{
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub enum ListNavDirection {
+  Left,
+  Right,
+  Up,
+  Down,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub enum Action {
   Tick,
   Render,
@@ -27,6 +35,7 @@ pub enum Action {
   EnterProcessing,
   ExitProcessing,
   Update,
+  NavigateList(ListNavDirection),
 }
 
 impl<'de> Deserialize<'de> for Action {
@@ -72,6 +81,17 @@ impl<'de> Deserialize<'de> for Action {
               Ok(Action::Resize(width, height))
             } else {
               Err(E::custom(format!("Invalid Resize format: {}", value)))
+            }
+          },
+          data if data.starts_with("NavigateList") => {
+            let parts: Vec<&str> = data.split(&['(', ')']).collect();
+
+            match parts[1] {
+              "Left" => Ok(Action::NavigateList(ListNavDirection::Left)),
+              "Right" => Ok(Action::NavigateList(ListNavDirection::Right)),
+              "Up" => Ok(Action::NavigateList(ListNavDirection::Up)),
+              "Down" => Ok(Action::NavigateList(ListNavDirection::Down)),
+              x => Err(E::custom(format!("Unexpected list navigation direction in config: {}", x))),
             }
           },
           _ => Err(E::custom(format!("Unknown Action variant: {}", value))),

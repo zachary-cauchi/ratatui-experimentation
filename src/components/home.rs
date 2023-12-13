@@ -2,6 +2,7 @@ use std::{collections::HashMap, time::Duration};
 
 use color_eyre::eyre::Result;
 use crossterm::event::{KeyCode, KeyEvent};
+use lazy_static::lazy_static;
 use log::error;
 use ratatui::{prelude::*, widgets::*};
 use tokio::sync::mpsc::UnboundedSender;
@@ -10,7 +11,7 @@ use tui_input::{backend::crossterm::EventHandler, Input};
 
 use super::{Component, Frame};
 use crate::{
-  action::Action,
+  action::{Action, ListNavDirection},
   config::{key_event_to_string, KeyBindings},
 };
 
@@ -20,6 +21,15 @@ pub enum Mode {
   Normal,
   Insert,
   Processing,
+}
+
+lazy_static! {
+  pub static ref LIST_OPS: HashMap<&'static str, Action> = HashMap::from([
+    ("List", Action::ScheduleIncrement),
+    ("Add", Action::ScheduleDecrement),
+    ("Edit", Action::ScheduleIncrement),
+    ("Delete", Action::ScheduleDecrement),
+  ]);
 }
 
 #[derive(Default)]
@@ -34,6 +44,7 @@ pub struct Home {
   pub keymap: HashMap<Vec<KeyEvent>, Action>,
   pub text: Vec<String>,
   pub last_events: Vec<KeyEvent>,
+  pub todo_op_index: usize,
 }
 
 impl Home {
@@ -86,6 +97,17 @@ impl Home {
     self.counter = self.counter.saturating_sub(i);
   }
 
+  pub fn navigate_list(&mut self, dir: ListNavDirection) {
+    match (dir, self.todo_op_index) {
+      (ListNavDirection::Left, 0) => self.todo_op_index = LIST_OPS.len() - 1,
+      (ListNavDirection::Left, _) => self.todo_op_index -= 1,
+      (ListNavDirection::Right, _) => {
+        self.todo_op_index = if self.todo_op_index == LIST_OPS.len() - 1 { 0 } else { self.todo_op_index + 1 }
+      },
+      _ => {},
+    };
+  }
+
   fn draw_menu(&self, f: &mut Frame) {
     let chunks = Layout::default()
       .direction(Direction::Vertical)
@@ -96,8 +118,8 @@ impl Home {
     let tabs = Tabs::new(vec!["List", "View", "Edit", "Delete"])
       .block(Block::default().title("List operations").borders(Borders::TOP))
       .style(Style::default().white())
-      .highlight_style(Style::default().yellow())
-      .select(0)
+      .highlight_style(Style::default().yellow().on_blue().underlined())
+      .select(self.todo_op_index)
       .divider(symbols::DOT);
 
     f.render_widget(tabs, chunks[0]);
@@ -196,6 +218,9 @@ impl Component for Home {
       },
       Action::EnterProcessing => {
         self.mode = Mode::Processing;
+      },
+      Action::NavigateList(dir) => {
+        self.navigate_list(dir);
       },
       Action::ExitProcessing => {
         // TODO: Make this go to previous mode instead

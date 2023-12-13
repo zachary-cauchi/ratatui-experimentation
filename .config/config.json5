@@ -8,7 +8,11 @@
       "</>": "EnterInsert",
       "<Ctrl-d>": "Quit", // Another way to quit
       "<Ctrl-c>": "Quit", // Yet another way to quit
-      "<Ctrl-z>": "Suspend" // Suspend the application
+      "<Ctrl-z>": "Suspend", // Suspend the application
+      "<left>": "NavigateList(Left)",
+      "<right>": "NavigateList(Right)",
+      "<up>": "NavigateList(Up)",
+      "<down>": "NavigateList(Down)",
     },
   }
 }
