@@ -99,7 +99,7 @@ impl Home {
 
     // Map the keybindings to a vector of rows.
     // Each vector prints the key(s) and the action it performs.
-    // TODO: Add printing of modifier keys (Ctrl, Shift, etc.)
+    // TODO: Change Action printing to prettier format.
     let rows: Vec<Row> = self
       .keymap
       .iter()
@@ -107,7 +107,7 @@ impl Home {
         Row::new(vec![
           key
             .iter()
-            .map(|k| serde_json::to_value(k).unwrap().to_string())
+            .map(key_event_to_string)
             .enumerate()
             .map(|(i, k)| match i {
               0 => k,
