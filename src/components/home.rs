@@ -98,14 +98,16 @@ impl Home {
   }
 
   pub fn navigate_list(&mut self, dir: ListNavDirection) {
-    match (dir, self.todo_op_index) {
-      (ListNavDirection::Left, 0) => self.todo_op_index = LIST_OPS.len() - 1,
-      (ListNavDirection::Left, _) => self.todo_op_index -= 1,
-      (ListNavDirection::Right, _) => {
-        self.todo_op_index = if self.todo_op_index == LIST_OPS.len() - 1 { 0 } else { self.todo_op_index + 1 }
-      },
-      _ => {},
-    };
+    if self.mode == Mode::Normal {
+      match (dir, self.todo_op_index) {
+        (ListNavDirection::Left, 0) => self.todo_op_index = LIST_OPS.len() - 1,
+        (ListNavDirection::Left, _) => self.todo_op_index -= 1,
+        (ListNavDirection::Right, _) => {
+          self.todo_op_index = if self.todo_op_index == LIST_OPS.len() - 1 { 0 } else { self.todo_op_index + 1 }
+        },
+        _ => {},
+      };
+    }
   }
 
   fn draw_menu(&self, f: &mut Frame) {
@@ -288,8 +290,10 @@ impl Component for Home {
         Span::styled("(Press ", Style::default().fg(Color::DarkGray)),
         Span::styled("/", Style::default().add_modifier(Modifier::BOLD).fg(Color::Gray)),
         Span::styled(" to start, ", Style::default().fg(Color::DarkGray)),
+        Span::styled("Enter", Style::default().add_modifier(Modifier::BOLD).fg(Color::Gray)),
+        Span::styled(" to save and exit, ", Style::default().fg(Color::DarkGray)),
         Span::styled("ESC", Style::default().add_modifier(Modifier::BOLD).fg(Color::Gray)),
-        Span::styled(" to finish)", Style::default().fg(Color::DarkGray)),
+        Span::styled(" to exit without saving)", Style::default().fg(Color::DarkGray)),
       ])));
     f.render_widget(input, rects[1]);
     if self.mode == Mode::Insert {
