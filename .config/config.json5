@@ -13,5 +13,13 @@
       "<up>": "NavigateList(Up)",
       "<down>": "NavigateList(Down)",
     },
+    "MainMenu": {
+      "<Ctrl-d>": "Quit", // Quit the application
+      "<Ctrl-c>": "Quit", // Another way to quit
+      "<left>": "NavigateList(Left)",
+      "<right>": "NavigateList(Right)",
+      "<up>": "NavigateList(Up)",
+      "<down>": "NavigateList(Down)",
+    }
   }
 }

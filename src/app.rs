@@ -6,7 +6,7 @@ use tokio::sync::mpsc;
 
 use crate::{
   action::Action,
-  components::{fps::FpsCounter, home::Home, Component},
+  components::{fps::FpsCounter, home::Home, main_menu::MainMenu, Component},
   config::Config,
   tui,
 };
@@ -15,6 +15,7 @@ use crate::{
 pub enum Mode {
   #[default]
   Home,
+  MainMenu,
 }
 
 pub struct App {
@@ -30,14 +31,15 @@ pub struct App {
 
 impl App {
   pub fn new(tick_rate: f64, frame_rate: f64) -> Result<Self> {
+    let main_menu = MainMenu::new();
     let home = Home::new();
     let fps = FpsCounter::new();
     let config = Config::new()?;
-    let mode = Mode::Home;
+    let mode = Mode::MainMenu;
     Ok(Self {
       tick_rate,
       frame_rate,
-      components: vec![Box::new(home), Box::new(fps)],
+      components: vec![Box::new(main_menu)],
       should_quit: false,
       should_suspend: false,
       config,
