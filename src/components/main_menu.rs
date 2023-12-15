@@ -24,12 +24,43 @@ lazy_static! {
   ]);
 }
 
+#[derive(Default, Clone, Copy)]
+struct MainMenuTabs {
+  pub item_index: usize,
+  pub is_item_selected: bool,
+}
+
+impl MainMenuTabs {
+  pub fn navigate_list(&mut self, dir: ListNavDirection) {
+    match (dir, self.item_index) {
+      (ListNavDirection::Left, 0) => self.item_index = LIST_OPS.len() - 1,
+      (ListNavDirection::Left, _) => self.item_index -= 1,
+      (ListNavDirection::Right, _) => {
+        self.item_index = if self.item_index == LIST_OPS.len() - 1 { 0 } else { self.item_index + 1 }
+      },
+      _ => {},
+    }
+  }
+}
+
+impl Widget for MainMenuTabs {
+  fn render(self, area: Rect, buf: &mut Buffer) {
+    Tabs::new(vec!["List", "View", "Edit", "Delete"])
+      .block(Block::default().title("List operations").borders(Borders::TOP))
+      .style(Style::default().white())
+      .highlight_style(Style::default().yellow().on_blue().underlined())
+      .select(self.item_index)
+      .divider(symbols::DOT)
+      .render(area, buf);
+  }
+}
+
 #[derive(Default)]
 pub struct MainMenu {
   pub show_help: bool,
   pub action_tx: Option<UnboundedSender<Action>>,
   pub keymap: HashMap<Vec<KeyEvent>, Action>,
-  pub todo_op_index: usize,
+  main_menu_tabs: MainMenuTabs,
 }
 
 impl MainMenu {
@@ -39,34 +70,6 @@ impl MainMenu {
 
   pub fn set_keymap(&mut self, keymap: HashMap<Vec<KeyEvent>, Action>) {
     self.keymap = keymap;
-  }
-
-  pub fn navigate_list(&mut self, dir: ListNavDirection) {
-    match (dir, self.todo_op_index) {
-      (ListNavDirection::Left, 0) => self.todo_op_index = LIST_OPS.len() - 1,
-      (ListNavDirection::Left, _) => self.todo_op_index -= 1,
-      (ListNavDirection::Right, _) => {
-        self.todo_op_index = if self.todo_op_index == LIST_OPS.len() - 1 { 0 } else { self.todo_op_index + 1 }
-      },
-      _ => {},
-    }
-  }
-
-  fn draw_menu(&self, f: &mut Frame) {
-    let chunks = Layout::default()
-      .direction(Direction::Vertical)
-      .margin(1)
-      .constraints([Constraint::Min(0), Constraint::Length(3)])
-      .split(f.size());
-
-    let tabs = Tabs::new(vec!["List", "View", "Edit", "Delete"])
-      .block(Block::default().title("List operations").borders(Borders::TOP))
-      .style(Style::default().white())
-      .highlight_style(Style::default().yellow().on_blue().underlined())
-      .select(self.todo_op_index)
-      .divider(symbols::DOT);
-
-    f.render_widget(tabs, chunks[0]);
   }
 }
 
@@ -85,7 +88,7 @@ impl Component for MainMenu {
   fn update(&mut self, action: Action) -> Result<Option<Action>> {
     match action {
       Action::NavigateList(dir) => {
-        self.navigate_list(dir);
+        self.main_menu_tabs.navigate_list(dir);
       },
       _ => (),
     }
@@ -93,9 +96,15 @@ impl Component for MainMenu {
   }
 
   fn draw(&mut self, f: &mut Frame<'_>, rect: Rect) -> Result<()> {
-    let rects = Layout::default().constraints([Constraint::Percentage(100), Constraint::Min(3)].as_ref()).split(rect);
+    let chunks = Layout::default()
+      .direction(Direction::Vertical)
+      .margin(1)
+      .constraints([Constraint::Min(0), Constraint::Length(3)])
+      .split(f.size());
 
-    self.draw_menu(f);
+    let viewport = Block::default().title("Main Menu");
+
+    f.render_widget(self.main_menu_tabs, chunks[0]);
 
     Ok(())
   }
