@@ -15,14 +15,7 @@ use crate::{
   config::{key_event_to_string, KeyBindings},
 };
 
-lazy_static! {
-  pub static ref LIST_OPS: HashMap<&'static str, Action> = HashMap::from([
-    ("List", Action::ScheduleIncrement),
-    ("Add", Action::ScheduleDecrement),
-    ("Edit", Action::ScheduleIncrement),
-    ("Delete", Action::ScheduleDecrement),
-  ]);
-}
+const TODO_TABS: [&str; 4] = ["List", "Add", "Edit", "Delete"];
 
 #[derive(Default, Clone, Copy)]
 struct MainMenuTabs {
@@ -33,10 +26,10 @@ struct MainMenuTabs {
 impl MainMenuTabs {
   pub fn navigate_list(&mut self, dir: ListNavDirection) {
     match (dir, self.item_index) {
-      (ListNavDirection::Left, 0) => self.item_index = LIST_OPS.len() - 1,
+      (ListNavDirection::Left, 0) => self.item_index = TODO_TABS.len() - 1,
       (ListNavDirection::Left, _) => self.item_index -= 1,
       (ListNavDirection::Right, _) => {
-        self.item_index = if self.item_index == LIST_OPS.len() - 1 { 0 } else { self.item_index + 1 }
+        self.item_index = if self.item_index == TODO_TABS.len() - 1 { 0 } else { self.item_index + 1 }
       },
       _ => {},
     }
@@ -45,7 +38,7 @@ impl MainMenuTabs {
 
 impl Widget for MainMenuTabs {
   fn render(self, area: Rect, buf: &mut Buffer) {
-    Tabs::new(vec!["List", "Add", "Edit", "Delete"])
+    Tabs::new(TODO_TABS.to_vec())
       .style(Style::default().white())
       .highlight_style(Style::default().yellow().on_blue().underlined())
       .select(self.item_index)

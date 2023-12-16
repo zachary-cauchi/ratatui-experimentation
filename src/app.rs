@@ -14,8 +14,8 @@ use crate::{
 #[derive(Default, Debug, Copy, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum Mode {
   #[default]
-  Home,
   MainMenu,
+  Home,
 }
 
 pub struct App {
