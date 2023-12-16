@@ -3,7 +3,7 @@
 #![allow(unused_variables)]
 
 // ANCHOR: all
-pub mod action;
+pub mod actions;
 pub mod app;
 pub mod cli;
 pub mod components;

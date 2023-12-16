@@ -11,7 +11,7 @@ use tui_input::{backend::crossterm::EventHandler, Input};
 
 use super::{Component, Frame};
 use crate::{
-  action::{Action, ListNavDirection},
+  actions::{Action, ListNavDirection},
   config::{key_event_to_string, KeyBindings},
 };
 

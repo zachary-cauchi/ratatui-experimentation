@@ -4,7 +4,7 @@ use ratatui::layout::Rect;
 use tokio::sync::mpsc::UnboundedSender;
 
 use crate::{
-  action::Action,
+  actions::Action,
   config::Config,
   tui::{Event, Frame},
 };
