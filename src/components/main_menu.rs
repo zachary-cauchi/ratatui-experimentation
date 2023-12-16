@@ -45,8 +45,7 @@ impl MainMenuTabs {
 
 impl Widget for MainMenuTabs {
   fn render(self, area: Rect, buf: &mut Buffer) {
-    Tabs::new(vec!["List", "View", "Edit", "Delete"])
-      .block(Block::default().title("List operations").borders(Borders::TOP))
+    Tabs::new(vec!["List", "Add", "Edit", "Delete"])
       .style(Style::default().white())
       .highlight_style(Style::default().yellow().on_blue().underlined())
       .select(self.item_index)
@@ -70,6 +69,15 @@ impl MainMenu {
 
   pub fn set_keymap(&mut self, keymap: HashMap<Vec<KeyEvent>, Action>) {
     self.keymap = keymap;
+  }
+
+  pub fn render_main_menu_border(&mut self, buf: &mut Buffer, area: Rect) {
+    Block::default().title("Main Menu").border_set(symbols::border::DOUBLE).borders(Borders::ALL).render(area, buf);
+    Block::default()
+      .title("Use 🞀 / 🞂 to navigate the top menu tabs.")
+      .title_alignment(Alignment::Left)
+      .title_position(block::Position::Bottom)
+      .render(area.inner(&Margin::new(1, 0)), buf);
   }
 }
 
@@ -96,15 +104,15 @@ impl Component for MainMenu {
   }
 
   fn draw(&mut self, f: &mut Frame<'_>, rect: Rect) -> Result<()> {
+    let main_menu_inner = rect.inner(&Margin::new(1, 1));
     let chunks = Layout::default()
       .direction(Direction::Vertical)
-      .margin(1)
-      .constraints([Constraint::Min(0), Constraint::Length(3)])
-      .split(f.size());
+      .constraints([Constraint::Length(1), Constraint::Min(0)])
+      .split(main_menu_inner);
 
-    let viewport = Block::default().title("Main Menu");
-
+    self.render_main_menu_border(f.buffer_mut(), rect);
     f.render_widget(self.main_menu_tabs, chunks[0]);
+
 
     Ok(())
   }
