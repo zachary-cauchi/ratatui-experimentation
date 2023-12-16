@@ -9,7 +9,7 @@ use tokio::sync::mpsc::UnboundedSender;
 use tracing::trace;
 use tui_input::{backend::crossterm::EventHandler, Input};
 
-use super::{Component, Frame};
+use super::{list_todos::TodosLister, Component, Frame};
 use crate::{
   action::{Action, ListNavDirection},
   config::{key_event_to_string, KeyBindings},
@@ -113,6 +113,10 @@ impl Component for MainMenu {
     self.render_main_menu_border(f.buffer_mut(), rect);
     f.render_widget(self.main_menu_tabs, chunks[0]);
 
+    match self.main_menu_tabs.item_index {
+      0 => f.render_widget(TodosLister::new(0), chunks[1]),
+      _ => unreachable!(),
+    }
 
     Ok(())
   }

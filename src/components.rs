@@ -11,6 +11,7 @@ use crate::{
 
 pub mod fps;
 pub mod home;
+pub mod list_todos;
 pub mod main_menu;
 
 pub trait Component {
