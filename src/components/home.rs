@@ -11,7 +11,7 @@ use tui_input::{backend::crossterm::EventHandler, Input};
 
 use super::{Component, Frame};
 use crate::{
-  actions::{Action, ListNavDirection},
+  actions::{engine_actions::EngineAction, home_action::HomeAction, home_action::ListNavDirection, Action},
   config::{key_event_to_string, KeyBindings},
 };
 
@@ -25,10 +25,10 @@ pub enum Mode {
 
 lazy_static! {
   pub static ref LIST_OPS: HashMap<&'static str, Action> = HashMap::from([
-    ("List", Action::ScheduleIncrement),
-    ("Add", Action::ScheduleDecrement),
-    ("Edit", Action::ScheduleIncrement),
-    ("Delete", Action::ScheduleDecrement),
+    ("List", Action::Home(HomeAction::ScheduleIncrement)),
+    ("Add", Action::Home(HomeAction::ScheduleDecrement)),
+    ("Edit", Action::Home(HomeAction::ScheduleIncrement)),
+    ("Delete", Action::Home(HomeAction::ScheduleDecrement)),
   ]);
 }
 
@@ -74,18 +74,18 @@ impl Home {
   pub fn schedule_increment(&mut self, i: usize) {
     let tx = self.action_tx.clone().unwrap();
     tokio::spawn(async move {
-      tx.send(Action::EnterProcessing).unwrap();
-      tx.send(Action::Increment(i)).unwrap();
-      tx.send(Action::ExitProcessing).unwrap();
+      tx.send(Action::Home(HomeAction::EnterProcessing)).unwrap();
+      tx.send(Action::Home(HomeAction::Increment(i))).unwrap();
+      tx.send(Action::Home(HomeAction::ExitProcessing)).unwrap();
     });
   }
 
   pub fn schedule_decrement(&mut self, i: usize) {
     let tx = self.action_tx.clone().unwrap();
     tokio::spawn(async move {
-      tx.send(Action::EnterProcessing).unwrap();
-      tx.send(Action::Decrement(i)).unwrap();
-      tx.send(Action::ExitProcessing).unwrap();
+      tx.send(Action::Home(HomeAction::EnterProcessing)).unwrap();
+      tx.send(Action::Home(HomeAction::Decrement(i))).unwrap();
+      tx.send(Action::Home(HomeAction::ExitProcessing)).unwrap();
     });
   }
 
@@ -184,18 +184,18 @@ impl Component for Home {
     let action = match self.mode {
       Mode::Normal | Mode::Processing => return Ok(None),
       Mode::Insert => match key.code {
-        KeyCode::Esc => Action::EnterNormal,
+        KeyCode::Esc => Action::Home(HomeAction::EnterNormal),
         KeyCode::Enter => {
           if let Some(sender) = &self.action_tx {
-            if let Err(e) = sender.send(Action::CompleteInput(self.input.value().to_string())) {
+            if let Err(e) = sender.send(Action::Home(HomeAction::CompleteInput(self.input.value().to_string()))) {
               error!("Failed to send action: {:?}", e);
             }
           }
-          Action::EnterNormal
+          Action::Home(HomeAction::EnterNormal)
         },
         _ => {
           self.input.handle_event(&crossterm::event::Event::Key(key));
-          Action::Update
+          Action::Home(HomeAction::Update)
         },
       },
     };
@@ -204,27 +204,27 @@ impl Component for Home {
 
   fn update(&mut self, action: Action) -> Result<Option<Action>> {
     match action {
-      Action::Tick => self.tick(),
-      Action::Render => self.render_tick(),
-      Action::ToggleShowHelp => self.show_help = !self.show_help,
-      Action::ScheduleIncrement => self.schedule_increment(1),
-      Action::ScheduleDecrement => self.schedule_decrement(1),
-      Action::Increment(i) => self.increment(i),
-      Action::Decrement(i) => self.decrement(i),
-      Action::CompleteInput(s) => self.add(s),
-      Action::EnterNormal => {
+      Action::Engine(EngineAction::Tick) => self.tick(),
+      Action::Engine(EngineAction::Render) => self.render_tick(),
+      Action::Home(HomeAction::ToggleShowHelp) => self.show_help = !self.show_help,
+      Action::Home(HomeAction::ScheduleIncrement) => self.schedule_increment(1),
+      Action::Home(HomeAction::ScheduleDecrement) => self.schedule_decrement(1),
+      Action::Home(HomeAction::Increment(i)) => self.increment(i),
+      Action::Home(HomeAction::Decrement(i)) => self.decrement(i),
+      Action::Home(HomeAction::CompleteInput(s)) => self.add(s),
+      Action::Home(HomeAction::EnterNormal) => {
         self.mode = Mode::Normal;
       },
-      Action::EnterInsert => {
+      Action::Home(HomeAction::EnterInsert) => {
         self.mode = Mode::Insert;
       },
-      Action::EnterProcessing => {
+      Action::Home(HomeAction::EnterProcessing) => {
         self.mode = Mode::Processing;
       },
-      Action::NavigateList(dir) => {
+      Action::Home(HomeAction::NavigateList(dir)) => {
         self.navigate_list(dir);
       },
-      Action::ExitProcessing => {
+      Action::Home(HomeAction::ExitProcessing) => {
         // TODO: Make this go to previous mode instead
         self.mode = Mode::Normal;
       },

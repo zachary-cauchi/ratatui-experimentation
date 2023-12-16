@@ -1,25 +1,25 @@
 {
   "keybindings": {
     "Home": {
-      "<j>": "ScheduleIncrement",
-      "<k>": "ScheduleDecrement",
-      "<l>": "ToggleShowHelp",
-      "</>": "EnterInsert",
-      "<Ctrl-d>": "Quit", // Quit the application
-      "<Ctrl-c>": "Quit", // Another way to quit
-      "<Ctrl-z>": "Suspend", // Suspend the application
-      "<left>": "NavigateList(Left)",
-      "<right>": "NavigateList(Right)",
-      "<up>": "NavigateList(Up)",
-      "<down>": "NavigateList(Down)",
+      "<j>": "Home.ScheduleIncrement",
+      "<k>": "Home.ScheduleDecrement",
+      "<l>": "Home.ToggleShowHelp",
+      "</>": "Home.EnterInsert",
+      "<Ctrl-d>": "Engine.Quit", // Quit the application
+      "<Ctrl-c>": "Engine.Quit", // Another way to quit
+      "<Ctrl-z>": "Engine.Suspend", // Suspend the application
+      "<left>": "Home.NavigateList(Left)",
+      "<right>": "Home.NavigateList(Right)",
+      "<up>": "Home.NavigateList(Up)",
+      "<down>": "Home.NavigateList(Down)",
     },
     "MainMenu": {
-      "<Ctrl-d>": "Quit", // Quit the application
-      "<Ctrl-c>": "Quit", // Another way to quit
-      "<left>": "NavigateList(Left)",
-      "<right>": "NavigateList(Right)",
-      "<up>": "NavigateList(Up)",
-      "<down>": "NavigateList(Down)",
+      "<Ctrl-d>": "Engine.Quit", // Quit the application
+      "<Ctrl-c>": "Engine.Quit", // Another way to quit
+      "<left>": "Home.NavigateList(Left)",
+      "<right>": "Home.NavigateList(Right)",
+      "<up>": "Home.NavigateList(Up)",
+      "<down>": "Home.NavigateList(Down)",
     }
   }
 }
