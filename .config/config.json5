@@ -3,7 +3,7 @@
     "Home": {
       "<j>": "Home.ScheduleIncrement",
       "<k>": "Home.ScheduleDecrement",
-      "<l>": "Home.ToggleShowHelp",
+      "<l>": "Engine.ToggleShowHelp",
       "</>": "Home.EnterInsert",
       "<Ctrl-d>": "Engine.Quit", // Quit the application
       "<Ctrl-c>": "Engine.Quit", // Another way to quit
@@ -20,6 +20,7 @@
       "<right>": "Home.NavigateList(Right)",
       "<up>": "Home.NavigateList(Up)",
       "<down>": "Home.NavigateList(Down)",
+      "<l>": "Engine.ToggleShowHelp",
     }
   }
 }

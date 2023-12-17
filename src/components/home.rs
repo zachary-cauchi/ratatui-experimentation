@@ -34,7 +34,6 @@ lazy_static! {
 
 #[derive(Default)]
 pub struct Home {
-  pub show_help: bool,
   pub counter: usize,
   pub app_ticker: usize,
   pub render_ticker: usize,
@@ -126,45 +125,6 @@ impl Home {
 
     f.render_widget(tabs, chunks[0]);
   }
-
-  fn draw_help(&self, f: &mut Frame, rect: &Rect) {
-    let rect = rect.inner(&Margin { horizontal: 4, vertical: 4 });
-    f.render_widget(Clear, rect);
-    let block = Block::default()
-      .title(Line::from(vec![Span::styled("Key Bindings", Style::default().add_modifier(Modifier::BOLD))]))
-      .borders(Borders::ALL)
-      .border_style(Style::default().fg(Color::Yellow));
-    f.render_widget(block, rect);
-
-    // Map the keybindings to a vector of rows.
-    // Each vector prints the key(s) and the action it performs.
-    // TODO: Change Action printing to prettier format.
-    let rows: Vec<Row> = self
-      .keymap
-      .iter()
-      .map(|(key, val)| {
-        Row::new(vec![
-          key
-            .iter()
-            .map(key_event_to_string)
-            .enumerate()
-            .map(|(i, k)| match i {
-              0 => k,
-              _ => format!(", {}", k),
-            })
-            .collect(),
-          format!("{val}"),
-        ])
-      })
-      .collect();
-
-    // Construct the final table.
-    let table = Table::new(rows)
-      .header(Row::new(vec!["Key", "Action"]).bottom_margin(1).style(Style::default().add_modifier(Modifier::BOLD)))
-      .widths(&[Constraint::Percentage(10), Constraint::Percentage(90)])
-      .column_spacing(1);
-    f.render_widget(table, rect.inner(&Margin { vertical: 4, horizontal: 2 }));
-  }
 }
 
 impl Component for Home {
@@ -210,7 +170,6 @@ impl Component for Home {
         _ => (),
       },
       Action::Home(h) => match h {
-        HomeAction::ToggleShowHelp => self.show_help = !self.show_help,
         HomeAction::ScheduleIncrement => self.schedule_increment(1),
         HomeAction::ScheduleDecrement => self.schedule_decrement(1),
         HomeAction::Increment(i) => self.increment(i),
@@ -304,10 +263,6 @@ impl Component for Home {
     if self.mode == Mode::Insert {
       f.set_cursor((rects[1].x + 1 + self.input.cursor() as u16).min(rects[1].x + rects[1].width - 2), rects[1].y + 1)
     }
-
-    if self.show_help {
-      self.draw_help(f, &rect);
-    };
 
     f.render_widget(
       Block::default()

@@ -11,6 +11,7 @@ pub enum EngineAction {
   Resume,
   Quit,
   Refresh,
+  ToggleShowHelp,
   Error(String),
 }
 

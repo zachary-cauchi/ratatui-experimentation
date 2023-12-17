@@ -69,6 +69,7 @@ impl<'de> Deserialize<'de> for Action {
               "Resume" => Ok(EngineAction::Resume.into()),
               "Quit" => Ok(EngineAction::Quit.into()),
               "Refresh" => Ok(EngineAction::Refresh.into()),
+              "ToggleShowHelp" => Ok(EngineAction::ToggleShowHelp.into()),
               data if substr.starts_with("Error(") => {
                 let error_msg = data.trim_start_matches("Error(").trim_end_matches(')');
                 Ok(EngineAction::Error(error_msg.to_string()).into())
