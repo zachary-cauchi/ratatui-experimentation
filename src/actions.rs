@@ -1,4 +1,4 @@
-use std::fmt;
+use std::fmt::{self, Display};
 
 use serde::{
   de::{self, Deserializer, Visitor},
@@ -26,6 +26,15 @@ macro_rules! extend_action {
 pub enum Action {
   Engine(EngineAction),
   Home(HomeAction),
+}
+
+impl Display for Action {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    match self {
+      Self::Engine(x) => write!(f, "Engine.{x}"),
+      Self::Home(x) => write!(f, "Home.{x}"),
+    }
+  }
 }
 
 extend_action!(EngineAction, Engine);

@@ -153,7 +153,7 @@ impl Home {
               _ => format!(", {}", k),
             })
             .collect(),
-          serde_json::to_value(val).unwrap().to_string(),
+          format!("{val}"),
         ])
       })
       .collect();
