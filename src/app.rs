@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use tokio::sync::mpsc;
 
 use crate::{
-  actions::{engine_actions::EngineAction, Action},
+  actions::{Action, EngineAction},
   components::{fps::FpsCounter, help_screen::HelpScreen, home::Home, main_menu::MainMenu, Component},
   config::Config,
   tui,

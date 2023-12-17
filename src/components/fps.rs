@@ -5,7 +5,7 @@ use ratatui::{prelude::*, widgets::*};
 
 use super::Component;
 use crate::{
-  actions::{engine_actions::EngineAction, Action},
+  actions::{Action, EngineAction},
   tui::Frame,
 };
 

@@ -10,7 +10,7 @@ use ratatui::{
 };
 
 use crate::{
-  actions::{home_action::HomeAction, Action},
+  actions::{Action, HomeAction},
   app::Mode,
   config::{key_event_to_string, Config},
   tui::Frame,
