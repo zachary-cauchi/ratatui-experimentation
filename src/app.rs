@@ -70,10 +70,10 @@ impl App {
     loop {
       if let Some(e) = tui.next().await {
         match e {
-          tui::Event::Quit => action_tx.send(Action::Engine(EngineAction::Quit))?,
-          tui::Event::Tick => action_tx.send(Action::Engine(EngineAction::Tick))?,
-          tui::Event::Render => action_tx.send(Action::Engine(EngineAction::Render))?,
-          tui::Event::Resize(x, y) => action_tx.send(Action::Engine(EngineAction::Resize(x, y)))?,
+          tui::Event::Quit => action_tx.send(EngineAction::Quit.into())?,
+          tui::Event::Tick => action_tx.send(EngineAction::Tick.into())?,
+          tui::Event::Render => action_tx.send(EngineAction::Render.into())?,
+          tui::Event::Resize(x, y) => action_tx.send(EngineAction::Resize(x, y).into())?,
           tui::Event::Key(key) => {
             if let Some(keymap) = self.config.keybindings.get(&self.mode) {
               if let Some(action) = keymap.get(&vec![key]) {
@@ -102,39 +102,42 @@ impl App {
       }
 
       while let Ok(action) = action_rx.try_recv() {
-        if action != Action::Engine(EngineAction::Tick) && action != Action::Engine(EngineAction::Render) {
+        if action != EngineAction::Tick.into() && action != EngineAction::Render.into() {
           log::debug!("{action:?}");
         }
-        match action {
-          Action::Engine(EngineAction::Tick) => {
-            self.last_tick_key_events.drain(..);
-          },
-          Action::Engine(EngineAction::Quit) => self.should_quit = true,
-          Action::Engine(EngineAction::Suspend) => self.should_suspend = true,
-          Action::Engine(EngineAction::Resume) => self.should_suspend = false,
-          Action::Engine(EngineAction::Resize(w, h)) => {
-            tui.resize(Rect::new(0, 0, w, h))?;
-            tui.draw(|f| {
-              for component in self.components.iter_mut() {
-                let r = component.draw(f, f.size());
-                if let Err(e) = r {
-                  action_tx.send(Action::Engine(EngineAction::Error(format!("Failed to draw: {:?}", e)))).unwrap();
+        if let Action::Engine(engine_action) = &action {
+          match engine_action {
+            EngineAction::Tick => {
+              self.last_tick_key_events.drain(..);
+            },
+            EngineAction::Quit => self.should_quit = true,
+            EngineAction::Suspend => self.should_suspend = true,
+            EngineAction::Resume => self.should_suspend = false,
+            EngineAction::Resize(w, h) => {
+              tui.resize(Rect::new(0, 0, *w, *h))?;
+              tui.draw(|f| {
+                for component in self.components.iter_mut() {
+                  let r = component.draw(f, f.size());
+                  if let Err(e) = r {
+                    action_tx.send(EngineAction::Error(format!("Failed to draw: {:?}", e)).into()).unwrap();
+                  }
                 }
-              }
-            })?;
-          },
-          Action::Engine(EngineAction::Render) => {
-            tui.draw(|f| {
-              for component in self.components.iter_mut() {
-                let r = component.draw(f, f.size());
-                if let Err(e) = r {
-                  action_tx.send(Action::Engine(EngineAction::Error(format!("Failed to draw: {:?}", e)))).unwrap();
+              })?;
+            },
+            EngineAction::Render => {
+              tui.draw(|f| {
+                for component in self.components.iter_mut() {
+                  let r = component.draw(f, f.size());
+                  if let Err(e) = r {
+                    action_tx.send(EngineAction::Error(format!("Failed to draw: {:?}", e)).into()).unwrap();
+                  }
                 }
-              }
-            })?;
-          },
-          _ => {},
+              })?;
+            },
+            _ => {},
+          }
         }
+
         for component in self.components.iter_mut() {
           if let Some(action) = component.update(action.clone())? {
             action_tx.send(action)?
@@ -143,7 +146,7 @@ impl App {
       }
       if self.should_suspend {
         tui.suspend()?;
-        action_tx.send(Action::Engine(EngineAction::Resume))?;
+        action_tx.send(EngineAction::Resume.into())?;
         tui = tui::Tui::new()?.tick_rate(self.tick_rate).frame_rate(self.frame_rate);
         tui.enter()?;
       } else if self.should_quit {

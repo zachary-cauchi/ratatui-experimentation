@@ -12,17 +12,24 @@ use self::{engine_actions::EngineAction, home_action::HomeAction};
 pub mod engine_actions;
 pub mod home_action;
 
+macro_rules! extend_action {
+  ( $x:ty, $y:ident ) => {
+    impl From<$x> for Action {
+      fn from(value: $x) -> Self {
+        Action::$y(value)
+      }
+    }
+  };
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub enum Action {
   Engine(EngineAction),
   Home(HomeAction),
 }
 
-impl From<EngineAction> for Action {
-  fn from(value: EngineAction) -> Self {
-    Action::Engine(value)
-  }
-}
+extend_action!(EngineAction, Engine);
+extend_action!(HomeAction, Home);
 
 impl<'de> Deserialize<'de> for Action {
   fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -47,22 +54,22 @@ impl<'de> Deserialize<'de> for Action {
             let substr: &str = data.split("Engine.").nth(1).unwrap_or_default();
 
             match substr {
-              "Tick" => Ok(Action::Engine(EngineAction::Tick)),
-              "Render" => Ok(Action::Engine(EngineAction::Render)),
-              "Suspend" => Ok(Action::Engine(EngineAction::Suspend)),
-              "Resume" => Ok(Action::Engine(EngineAction::Resume)),
-              "Quit" => Ok(Action::Engine(EngineAction::Quit)),
-              "Refresh" => Ok(Action::Engine(EngineAction::Refresh)),
+              "Tick" => Ok(EngineAction::Tick.into()),
+              "Render" => Ok(EngineAction::Render.into()),
+              "Suspend" => Ok(EngineAction::Suspend.into()),
+              "Resume" => Ok(EngineAction::Resume.into()),
+              "Quit" => Ok(EngineAction::Quit.into()),
+              "Refresh" => Ok(EngineAction::Refresh.into()),
               data if substr.starts_with("Error(") => {
                 let error_msg = data.trim_start_matches("Error(").trim_end_matches(')');
-                Ok(Action::Engine(EngineAction::Error(error_msg.to_string())))
+                Ok(EngineAction::Error(error_msg.to_string()).into())
               },
               data if substr.starts_with("Resize(") => {
                 let parts: Vec<&str> = data.trim_start_matches("Resize(").trim_end_matches(')').split(',').collect();
                 if parts.len() == 2 {
                   let width: u16 = parts[0].trim().parse().map_err(E::custom)?;
                   let height: u16 = parts[1].trim().parse().map_err(E::custom)?;
-                  Ok(Action::Engine(EngineAction::Resize(width, height)))
+                  Ok(EngineAction::Resize(width, height).into())
                 } else {
                   Err(E::custom(format!("Invalid Resize format: {}", value)))
                 }
@@ -74,20 +81,20 @@ impl<'de> Deserialize<'de> for Action {
             let substr: &str = data.split("Home.").nth(1).unwrap_or_default();
 
             match substr {
-              "Help" => Ok(Action::Home(HomeAction::Help)),
-              "ScheduleIncrement" => Ok(Action::Home(HomeAction::ScheduleIncrement)),
-              "ScheduleDecrement" => Ok(Action::Home(HomeAction::ScheduleDecrement)),
-              "ToggleShowHelp" => Ok(Action::Home(HomeAction::ToggleShowHelp)),
-              "EnterInsert" => Ok(Action::Home(HomeAction::EnterInsert)),
-              "EnterNormal" => Ok(Action::Home(HomeAction::EnterNormal)),
+              "Help" => Ok(HomeAction::Help.into()),
+              "ScheduleIncrement" => Ok(HomeAction::ScheduleIncrement.into()),
+              "ScheduleDecrement" => Ok(HomeAction::ScheduleDecrement.into()),
+              "ToggleShowHelp" => Ok(HomeAction::ToggleShowHelp.into()),
+              "EnterInsert" => Ok(HomeAction::EnterInsert.into()),
+              "EnterNormal" => Ok(HomeAction::EnterNormal.into()),
               data if data.starts_with("NavigateList") => {
                 let parts: Vec<&str> = data.split(&['(', ')']).collect();
 
                 match parts[1] {
-                  "Left" => Ok(Action::Home(HomeAction::NavigateList(ListNavDirection::Left))),
-                  "Right" => Ok(Action::Home(HomeAction::NavigateList(ListNavDirection::Right))),
-                  "Up" => Ok(Action::Home(HomeAction::NavigateList(ListNavDirection::Up))),
-                  "Down" => Ok(Action::Home(HomeAction::NavigateList(ListNavDirection::Down))),
+                  "Left" => Ok(HomeAction::NavigateList(ListNavDirection::Left).into()),
+                  "Right" => Ok(HomeAction::NavigateList(ListNavDirection::Right).into()),
+                  "Up" => Ok(HomeAction::NavigateList(ListNavDirection::Up).into()),
+                  "Down" => Ok(HomeAction::NavigateList(ListNavDirection::Down).into()),
                   x => Err(E::custom(format!("Unexpected list navigation direction in config: {}", x))),
                 }
               },
