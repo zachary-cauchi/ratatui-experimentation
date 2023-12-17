@@ -128,7 +128,7 @@ impl Home {
   }
 
   fn draw_help(&self, f: &mut Frame, rect: &Rect) {
-    let rect = rect.inner(&Margin { horizontal: 4, vertical: 2 });
+    let rect = rect.inner(&Margin { horizontal: 4, vertical: 4 });
     f.render_widget(Clear, rect);
     let block = Block::default()
       .title(Line::from(vec![Span::styled("Key Bindings", Style::default().add_modifier(Modifier::BOLD))]))
