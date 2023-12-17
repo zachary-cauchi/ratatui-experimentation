@@ -90,11 +90,8 @@ impl Component for MainMenu {
   }
 
   fn update(&mut self, action: Action) -> Result<Option<Action>> {
-    match action {
-      Action::Home(HomeAction::NavigateList(dir)) => {
-        self.main_menu_tabs.navigate_list(dir);
-      },
-      _ => (),
+    if let Action::Home(HomeAction::NavigateList(dir)) = action {
+      self.main_menu_tabs.navigate_list(dir);
     }
     Ok(None)
   }
