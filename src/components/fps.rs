@@ -4,7 +4,10 @@ use color_eyre::eyre::Result;
 use ratatui::{prelude::*, widgets::*};
 
 use super::Component;
-use crate::{actions::Action, tui::Frame};
+use crate::{
+  actions::{engine_actions::EngineAction, Action},
+  tui::Frame,
+};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Ticker {
@@ -68,10 +71,10 @@ impl FpsCounter {
 
 impl Component for FpsCounter {
   fn update(&mut self, action: Action) -> Result<Option<Action>> {
-    if let Action::Tick = action {
+    if let Action::Engine(EngineAction::Tick) = action {
       self.app_tick()?
     };
-    if let Action::Render = action {
+    if let Action::Engine(EngineAction::Render) = action {
       self.render_tick()?
     };
     Ok(None)

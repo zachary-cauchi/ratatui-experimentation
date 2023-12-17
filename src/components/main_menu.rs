@@ -11,7 +11,10 @@ use tui_input::{backend::crossterm::EventHandler, Input};
 
 use super::{list_todos::TodosLister, Component, Frame};
 use crate::{
-  actions::{Action, ListNavDirection},
+  actions::{
+    home_action::{HomeAction, ListNavDirection},
+    Action,
+  },
   config::{key_event_to_string, KeyBindings},
 };
 
@@ -87,11 +90,8 @@ impl Component for MainMenu {
   }
 
   fn update(&mut self, action: Action) -> Result<Option<Action>> {
-    match action {
-      Action::NavigateList(dir) => {
-        self.main_menu_tabs.navigate_list(dir);
-      },
-      _ => (),
+    if let Action::Home(HomeAction::NavigateList(dir)) = action {
+      self.main_menu_tabs.navigate_list(dir);
     }
     Ok(None)
   }

@@ -1,42 +1,44 @@
-use std::fmt;
+use std::fmt::{self, Display};
 
 use serde::{
   de::{self, Deserializer, Visitor},
   Deserialize, Serialize,
 };
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub enum ListNavDirection {
-  Left,
-  Right,
-  Up,
-  Down,
+use crate::actions::home_action::ListNavDirection;
+
+use self::{engine_actions::EngineAction, home_action::HomeAction};
+
+pub mod engine_actions;
+pub mod home_action;
+
+macro_rules! extend_action {
+  ( $x:ty, $y:ident ) => {
+    impl From<$x> for Action {
+      fn from(value: $x) -> Self {
+        Action::$y(value)
+      }
+    }
+  };
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub enum Action {
-  Tick,
-  Render,
-  Resize(u16, u16),
-  Suspend,
-  Resume,
-  Quit,
-  Refresh,
-  Error(String),
-  Help,
-  ToggleShowHelp,
-  ScheduleIncrement,
-  ScheduleDecrement,
-  Increment(usize),
-  Decrement(usize),
-  CompleteInput(String),
-  EnterNormal,
-  EnterInsert,
-  EnterProcessing,
-  ExitProcessing,
-  Update,
-  NavigateList(ListNavDirection),
+  Engine(EngineAction),
+  Home(HomeAction),
 }
+
+impl Display for Action {
+  fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+    match self {
+      Self::Engine(x) => write!(f, "Engine.{x}"),
+      Self::Home(x) => write!(f, "Home.{x}"),
+    }
+  }
+}
+
+extend_action!(EngineAction, Engine);
+extend_action!(HomeAction, Home);
 
 impl<'de> Deserialize<'de> for Action {
   fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -49,7 +51,7 @@ impl<'de> Deserialize<'de> for Action {
       type Value = Action;
 
       fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        formatter.write_str("a valid string representation of Action")
+        formatter.write_str("a valid string (in the format \"<ActionName>[<param_1> ...]\") representation of Action")
       }
 
       fn visit_str<E>(self, value: &str) -> Result<Action, E>
@@ -57,41 +59,55 @@ impl<'de> Deserialize<'de> for Action {
         E: de::Error,
       {
         match value {
-          "Tick" => Ok(Action::Tick),
-          "Render" => Ok(Action::Render),
-          "Suspend" => Ok(Action::Suspend),
-          "Resume" => Ok(Action::Resume),
-          "Quit" => Ok(Action::Quit),
-          "Refresh" => Ok(Action::Refresh),
-          "Help" => Ok(Action::Help),
-          "ScheduleIncrement" => Ok(Action::ScheduleIncrement),
-          "ScheduleDecrement" => Ok(Action::ScheduleDecrement),
-          "ToggleShowHelp" => Ok(Action::ToggleShowHelp),
-          "EnterInsert" => Ok(Action::EnterInsert),
-          "EnterNormal" => Ok(Action::EnterNormal),
-          data if data.starts_with("Error(") => {
-            let error_msg = data.trim_start_matches("Error(").trim_end_matches(')');
-            Ok(Action::Error(error_msg.to_string()))
-          },
-          data if data.starts_with("Resize(") => {
-            let parts: Vec<&str> = data.trim_start_matches("Resize(").trim_end_matches(')').split(',').collect();
-            if parts.len() == 2 {
-              let width: u16 = parts[0].trim().parse().map_err(E::custom)?;
-              let height: u16 = parts[1].trim().parse().map_err(E::custom)?;
-              Ok(Action::Resize(width, height))
-            } else {
-              Err(E::custom(format!("Invalid Resize format: {}", value)))
+          data if data.starts_with("Engine.") => {
+            let substr: &str = data.split("Engine.").nth(1).unwrap_or_default();
+
+            match substr {
+              "Tick" => Ok(EngineAction::Tick.into()),
+              "Render" => Ok(EngineAction::Render.into()),
+              "Suspend" => Ok(EngineAction::Suspend.into()),
+              "Resume" => Ok(EngineAction::Resume.into()),
+              "Quit" => Ok(EngineAction::Quit.into()),
+              "Refresh" => Ok(EngineAction::Refresh.into()),
+              data if substr.starts_with("Error(") => {
+                let error_msg = data.trim_start_matches("Error(").trim_end_matches(')');
+                Ok(EngineAction::Error(error_msg.to_string()).into())
+              },
+              data if substr.starts_with("Resize(") => {
+                let parts: Vec<&str> = data.trim_start_matches("Resize(").trim_end_matches(')').split(',').collect();
+                if parts.len() == 2 {
+                  let width: u16 = parts[0].trim().parse().map_err(E::custom)?;
+                  let height: u16 = parts[1].trim().parse().map_err(E::custom)?;
+                  Ok(EngineAction::Resize(width, height).into())
+                } else {
+                  Err(E::custom(format!("Invalid Resize format: {}", value)))
+                }
+              },
+              _ => Err(E::custom(format!("Unknown EngineAction variant: {}", value))),
             }
           },
-          data if data.starts_with("NavigateList") => {
-            let parts: Vec<&str> = data.split(&['(', ')']).collect();
+          data if data.starts_with("Home.") => {
+            let substr: &str = data.split("Home.").nth(1).unwrap_or_default();
 
-            match parts[1] {
-              "Left" => Ok(Action::NavigateList(ListNavDirection::Left)),
-              "Right" => Ok(Action::NavigateList(ListNavDirection::Right)),
-              "Up" => Ok(Action::NavigateList(ListNavDirection::Up)),
-              "Down" => Ok(Action::NavigateList(ListNavDirection::Down)),
-              x => Err(E::custom(format!("Unexpected list navigation direction in config: {}", x))),
+            match substr {
+              "Help" => Ok(HomeAction::Help.into()),
+              "ScheduleIncrement" => Ok(HomeAction::ScheduleIncrement.into()),
+              "ScheduleDecrement" => Ok(HomeAction::ScheduleDecrement.into()),
+              "ToggleShowHelp" => Ok(HomeAction::ToggleShowHelp.into()),
+              "EnterInsert" => Ok(HomeAction::EnterInsert.into()),
+              "EnterNormal" => Ok(HomeAction::EnterNormal.into()),
+              data if data.starts_with("NavigateList") => {
+                let parts: Vec<&str> = data.split(&['(', ')']).collect();
+
+                match parts[1] {
+                  "Left" => Ok(HomeAction::NavigateList(ListNavDirection::Left).into()),
+                  "Right" => Ok(HomeAction::NavigateList(ListNavDirection::Right).into()),
+                  "Up" => Ok(HomeAction::NavigateList(ListNavDirection::Up).into()),
+                  "Down" => Ok(HomeAction::NavigateList(ListNavDirection::Down).into()),
+                  x => Err(E::custom(format!("Unexpected list navigation direction in config: {}", x))),
+                }
+              },
+              _ => Err(E::custom(format!("Unknown HomeAction variant: {}", value))),
             }
           },
           _ => Err(E::custom(format!("Unknown Action variant: {}", value))),

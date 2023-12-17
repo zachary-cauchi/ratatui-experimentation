@@ -390,6 +390,8 @@ fn parse_color(s: &str) -> Option<Color> {
 mod tests {
   use pretty_assertions::assert_eq;
 
+  use crate::actions::engine_actions::EngineAction;
+
   use super::*;
 
   #[test]
@@ -443,8 +445,8 @@ mod tests {
   fn test_config() -> Result<()> {
     let c = Config::new()?;
     assert_eq!(
-      c.keybindings.get(&Mode::Home).unwrap().get(&parse_key_sequence("<q>").unwrap_or_default()).unwrap(),
-      &Action::Quit
+      c.keybindings.get(&Mode::Home).unwrap().get(&parse_key_sequence("<ctrl-c>").unwrap_or_default()).unwrap(),
+      &EngineAction::Quit.into()
     );
     Ok(())
   }
