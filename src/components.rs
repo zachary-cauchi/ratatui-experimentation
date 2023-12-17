@@ -14,6 +14,7 @@ pub mod help_screen;
 pub mod home;
 pub mod list_todos;
 pub mod main_menu;
+pub mod mode_switcher;
 
 pub trait Component {
   #[allow(unused_variables)]

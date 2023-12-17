@@ -21,6 +21,7 @@
       "<up>": "Home.NavigateList(Up)",
       "<down>": "Home.NavigateList(Down)",
       "<l>": "Engine.ToggleShowHelp",
+      "<Esc>": "Engine.ToggleShowModeSwitcher"
     }
   }
 }

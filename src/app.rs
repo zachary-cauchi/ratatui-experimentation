@@ -6,7 +6,9 @@ use tokio::sync::mpsc;
 
 use crate::{
   actions::{Action, EngineAction},
-  components::{fps::FpsCounter, help_screen::HelpScreen, home::Home, main_menu::MainMenu, Component},
+  components::{
+    fps::FpsCounter, help_screen::HelpScreen, home::Home, main_menu::MainMenu, mode_switcher::ModeSwitcher, Component,
+  },
   config::Config,
   tui,
 };
@@ -37,11 +39,12 @@ impl App {
     let fps = FpsCounter::new();
     let config = Config::new()?;
     let help_screen = HelpScreen::new(vec![mode]);
+    let mode_switcher = ModeSwitcher::new(mode);
 
     Ok(Self {
       tick_rate,
       frame_rate,
-      components: vec![Box::new(main_menu), Box::new(help_screen)],
+      components: vec![Box::new(main_menu), Box::new(help_screen), Box::new(mode_switcher)],
       should_quit: false,
       should_suspend: false,
       config,
@@ -112,6 +115,7 @@ impl App {
             EngineAction::Tick => {
               self.last_tick_key_events.drain(..);
             },
+            EngineAction::ChangeMode(m) => self.mode = *m,
             EngineAction::Quit => self.should_quit = true,
             EngineAction::Suspend => self.should_suspend = true,
             EngineAction::Resume => self.should_suspend = false,

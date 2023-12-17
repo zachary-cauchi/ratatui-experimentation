@@ -2,6 +2,8 @@ use std::fmt::Display;
 
 use serde::Serialize;
 
+use crate::app::Mode;
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub enum EngineAction {
   Tick,
@@ -13,6 +15,8 @@ pub enum EngineAction {
   Refresh,
   ToggleShowHelp,
   Error(String),
+  ChangeMode(Mode),
+  ToggleShowModeSwitcher,
 }
 
 impl Display for EngineAction {

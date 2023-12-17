@@ -87,7 +87,9 @@ impl HelpScreen {
       .widths(&[Constraint::Percentage(10), Constraint::Percentage(90)])
       .column_spacing(1);
 
-    f.render_stateful_widget(table, rect.inner(&Margin { vertical: 4, horizontal: 2 }), &mut self.state);
+    let location = rect.inner(&Margin { vertical: 4, horizontal: 2 });
+    f.render_widget(Clear, location);
+    f.render_stateful_widget(table, location, &mut self.state);
   }
 }
 
