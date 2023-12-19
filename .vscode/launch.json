@@ -7,15 +7,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'bucketinator'",
+            "name": "Debug executable 'ratatui-experimentation'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=bucketinator",
-                    "--package=bucketinator"
+                    "--bin=ratatui-experimentation",
+                    "--package=ratatui-experimentation"
                 ],
                 "filter": {
-                    "name": "bucketinator",
+                    "name": "ratatui-experimentation",
                     "kind": "bin"
                 }
             },
@@ -25,16 +25,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'bucketinator'",
+            "name": "Debug unit tests in executable 'ratatui-experimentation'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=bucketinator",
-                    "--package=bucketinator"
+                    "--bin=ratatui-experimentation",
+                    "--package=ratatui-experimentation"
                 ],
                 "filter": {
-                    "name": "bucketinator",
+                    "name": "ratatui-experimentation",
                     "kind": "bin"
                 }
             },

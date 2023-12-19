@@ -42,5 +42,5 @@ fn main() {
     }
   }
 
-  println!("cargo:rustc-env=BUCKETINATOR_GIT_INFO={}", git_describe);
+  println!("cargo:rustc-env=RATATUI_EXPERIMENTATION_GIT_INFO={}", git_describe);
 }

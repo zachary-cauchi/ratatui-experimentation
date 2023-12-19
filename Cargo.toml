@@ -1,9 +1,9 @@
 [package]
-name = "bucketinator"
+name = "ratatui-experimentation"
 version = "0.1.0"
 edition = "2021"
 description = "A bucket list manager centered around multimedia (games, films, etc.)"
-repository = "https://github.com/zachary-cauchi/bucketinator"
+repository = "https://github.com/zachary-cauchi/ratatui-experimentation"
 authors = ["Zachary Cauchi <zach.cauchi@hotmail.com>"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
