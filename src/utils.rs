@@ -26,9 +26,9 @@ fn project_directory() -> Option<ProjectDirs> {
 pub fn initialize_panic_handler() -> Result<()> {
   let (panic_hook, eyre_hook) = color_eyre::config::HookBuilder::default()
     .panic_section(format!("This is a bug. Consider reporting it at {}", env!("CARGO_PKG_REPOSITORY")))
-    .capture_span_trace_by_default(false)
-    .display_location_section(false)
-    .display_env_section(false)
+    .capture_span_trace_by_default(true)
+    .display_location_section(true)
+    .display_env_section(true)
     .into_hooks();
   eyre_hook.install()?;
   std::panic::set_hook(Box::new(move |panic_info| {
